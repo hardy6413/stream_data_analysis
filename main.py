@@ -1,5 +1,8 @@
 import dask.dataframe as dd
 import dask.array as da
+import dask_ml.model_selection
+import dask_ml.datasets
+from dask_ml.linear_model import LinearRegression
 from dask_ml.preprocessing import StandardScaler
 from dask_ml.preprocessing import LabelEncoder
 
@@ -47,6 +50,7 @@ def transform_strings_to_int(frame: dd.DataFrame):
 def standardize_values(frame: dd.DataFrame) -> dd.DataFrame:
     data = da.array(frame)
 
+    # TODO: choose proper scaler StandardScaler/MinMaxScaler/RobustScaler/MaxAbsScaler
     scaler = StandardScaler()
     scaled_data = scaler.fit_transform(data.reshape(-1, 1))
 
@@ -90,3 +94,15 @@ if __name__ == '__main__':
     print(permanent_trans_stand)
     print(b2b_trans_stand)
     print(mandate_trans_stand)
+
+    # build model
+    X = [[]]
+    y = [[]]
+
+    # divide model to train and learn data
+    X_train, X_test, y_train, y_test = dask_ml.model_selection.train_test_split(X, y, test_size=0.2)
+
+    # linear regression with multiple params
+    model = LinearRegression()
+    model.fit(X_train, y_train)
+    y_pred = model.predict(X_test)
