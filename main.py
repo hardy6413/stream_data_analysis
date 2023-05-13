@@ -1,14 +1,7 @@
-from typing import Tuple
-
 import dask.dataframe as dd
 import dask.array as da
-import numpy as np
 from dask_ml.preprocessing import StandardScaler
 from dask_ml.preprocessing import LabelEncoder
-import pandas as pd
-from sklearn.model_selection import train_test_split
-from sklearn import preprocessing
-from itertools import chain
 
 
 def read_data():
@@ -26,20 +19,21 @@ def read_data():
                               'if_mandate': 'object'
                               })
 
-    data['permanent_mean'] = data[['salary_from_permanent', 'salary_to_permanent']] \
-                                 .mean(axis=1) * data['currency_exchange_rate']
+    data['permanent_mean'] = data[['salary_from_permanent', 'salary_to_permanent']].mean(axis=1) * data[
+        'currency_exchange_rate']
 
-    data['b2b_mean'] = data[['salary_from_b2b', 'salary_to_b2b']] \
-                           .mean(axis=1) * data['currency_exchange_rate']
-    data['mandate_mean'] = data[['salary_from_mandate', 'salary_to_mandate']] \
-                               .mean(axis=1) * data['currency_exchange_rate']
+    data['b2b_mean'] = data[['salary_from_b2b', 'salary_to_b2b']].mean(axis=1) * data[
+        'currency_exchange_rate']
+
+    data['mandate_mean'] = data[['salary_from_mandate', 'salary_to_mandate']].mean(axis=1) * data[
+        'currency_exchange_rate']
 
     return data['City'].values.compute().transpose(), \
         data['Workplace_type'].values.compute().transpose(), data['Experience_level'].values.compute().transpose(), \
         data['Remote'].values.compute().transpose(), data['if_permanent'].values.compute().transpose(), \
         data['if_b2b'].values.compute().transpose(), data['if_mandate'].values.compute().transpose()
-        # data['permanent_mean'].values.compute().transpose(),  data['b2b_mean'].values.compute().transpose(), \
-        # data['mandate_mean'].values.compute().transpose()
+    # data['permanent_mean'].values.compute().transpose(),  data['b2b_mean'].values.compute().transpose(), \
+    # data['mandate_mean'].values.compute().transpose()
 
 
 def transform_strings_to_int(frame: dd.DataFrame):
@@ -57,7 +51,6 @@ def standardize_values(frame: dd.DataFrame) -> dd.DataFrame:
     scaled_data = scaler.fit_transform(data.reshape(-1, 1))
 
     return scaled_data.compute()
-
 
 
 if __name__ == '__main__':
