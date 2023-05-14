@@ -1,13 +1,16 @@
 import dask.dataframe as dd
 import dask.array as da
-import dask_ml.model_selection
-import dask_ml.datasets
-from dask_ml.linear_model import LinearRegression
-from dask_ml.model_selection import train_test_split
+
 from dask_ml.preprocessing import StandardScaler
 from dask_ml.preprocessing import LabelEncoder
-
-
+from sklearn.model_selection import train_test_split
+from sklearn import linear_model
+from sklearn import preprocessing
+import numpy as np
+from sklearn.metrics import classification_report, precision_score, f1_score, accuracy_score
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_squared_error, mean_absolute_error
+from sklearn.metrics import r2_score, roc_auc_score
 def read_data():
     data = dd.read_csv('./archive/data.csv',
                        dtype={'Company_size_from': 'object',
@@ -53,9 +56,14 @@ def standardize_values(frame: dd.DataFrame) -> da.array:
 
     # TODO: choose proper scaler StandardScaler/MinMaxScaler/RobustScaler/MaxAbsScaler
     scaler = StandardScaler()
-    scaled_data = scaler.fit_transform(data.reshape(-1, 1))
-
-    return scaled_data
+    #scaler = preprocessing.StandardScaler()
+    #xscaled = scaler.fit_transform(data)
+    #scaled_data = scaler.fit_transform(data.reshape(-1, 1))
+    #print("xx")
+    #print(scaled_data.compute())
+    #print("yy")
+    #print(data.compute())
+    return data
 
 
 if __name__ == '__main__':
@@ -85,23 +93,39 @@ if __name__ == '__main__':
     b2b_mean_stand = standardize_values(mandate_trans)
     mandate_mean_stand = standardize_values(mandate_trans)
 
-    print('normalized data')
-    print(city_trans_stand.compute())
-    print(mandate_mean_stand.compute())
+    #print('normalized data')
+    #print(city_trans_stand.compute())
+    #print(mandate_mean_stand.compute())
+
+    #X_train_n, X_test_n, x_train_n, x_test_n = train_test_split(X_n, xscaled.ravel(), test_size=0.2, random_state=0)
 
     # build model
-    X = da.concatenate([city_trans_stand, mandate_trans_stand, workplace_trans_stand,
-                        experience_trans_stand, remote_trans_stand, permanent_trans_stand, b2b_trans_stand],  axis=1)
+    X = da.concatenate((city_trans_stand, mandate_trans_stand, workplace_trans_stand,
+                       experience_trans_stand, remote_trans_stand, permanent_trans_stand, b2b_trans_stand),  axis=1)
+    #print(X.compute())
     y = da.concatenate([permanent_mean_stand, b2b_mean_stand, mandate_mean_stand], axis=1)
     # print(X.compute())
-    # print(y.compute())
+    print(mandate)
 
     # # divide model to train and learn data
-    # X_train, X_test, y_train, y_test = train_test_split(X, permanent_mean_stand, test_size=0.2, random_state=42)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.4, random_state=0)#sprawdzic random state
     # print(X_train)
     # # linear regression with multiple params
-    # model = LinearRegression()
-    # model.fit(X_train, y_train)
-    # y_pred = model.predict(X_test)
+    model = LinearRegression()
+    model.fit(X_train, y_train)
+    y_pred = model.predict(X_test)
+    #print(classification_report(y_test, y_pred))
+    print(
+        'mean_squared_error : ', mean_squared_error(y_test, y_pred))
+    print(
+        'mean_absolute_error : ', mean_absolute_error(y_test, y_pred))
 
+    score = r2_score(y_test, y_pred)
+    print("The accuracy of our model is {}%".format(round(score, 2) * 100))
+    print("xx")
+    print(y_test.compute())
+    print(y_pred)
+    r = roc_auc_score(y_test, y_pred)
+    print(r)
+    print("The auc of our model is {}%".format(round(r, 2) * 100))
     # compute Accuracy, Loss, AUC, MAE, RMS from sklearn.metrics
