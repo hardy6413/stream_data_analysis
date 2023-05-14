@@ -115,7 +115,7 @@ if __name__ == '__main__':
     #np.set_printoptions(precision=3)
     #print(permanent_mean)
     # # divide model to train and learn data
-    X_train, X_test, y_train, y_test = train_test_split(X, b2b_mean_stand, test_size=0.8, random_state=0)#sprawdzic random state
+    X_train, X_test, y_train, y_test = train_test_split(X, b2b_mean_stand, test_size=0.7, random_state=0)#sprawdzic random state
     # print(X_train)
     # # linear regression with multiple params
     model = LinearRegression()
