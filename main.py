@@ -26,21 +26,25 @@ def read_data():
                               'if_mandate': 'object'
                               })
 
-    data['permanent_mean'] = data[['salary_from_permanent', 'salary_to_permanent']].mean(axis=1) * data[
-        'currency_exchange_rate']
-
+    data = data[data.salary_to_b2b > 0]
+    data = data[data.salary_from_b2b > 0]
+    data.currency_exchange_rate = data.currency_exchange_rate.replace(0, 1)
+    #data['permanent_mean'] = data[['salary_from_permanent', 'salary_to_permanent']].mean(axis=1) * data[
+    #    'currency_exchange_rate']
+    #data[data['salary_to_permanent'] == 0].salary_to_permanent.value_counts().compute()
     data['b2b_mean'] = data[['salary_from_b2b', 'salary_to_b2b']].mean(axis=1) * data[
         'currency_exchange_rate']
 
-    data['mandate_mean'] = data[['salary_from_mandate', 'salary_to_mandate']].mean(axis=1) * data[
-        'currency_exchange_rate']
+    #data['mandate_mean'] = data[['salary_from_mandate', 'salary_to_mandate']].mean(axis=1) * data[
+    #    'currency_exchange_rate']
 
     return data['City'].values.compute().transpose(), \
         data['Workplace_type'].values.compute().transpose(), data['Experience_level'].values.compute().transpose(), \
         data['Remote'].values.compute().transpose(), data['if_permanent'].values.compute().transpose(), \
         data['if_b2b'].values.compute().transpose(), data['if_mandate'].values.compute().transpose(),\
-    data['permanent_mean'].values.compute().transpose(),  data['b2b_mean'].values.compute().transpose(), \
-    data['mandate_mean'].values.compute().transpose()
+        data['b2b_mean'].values.compute().transpose()
+    #data['permanent_mean'].values.compute().transpose(),  data['b2b_mean'].values.compute().transpose(), \
+    #data['mandate_mean'].values.compute().transpose()
 
 
 def transform_strings_to_int(frame: dd.DataFrame):
@@ -67,7 +71,7 @@ def standardize_values(frame: dd.DataFrame) -> da.array:
 
 
 if __name__ == '__main__':
-    city, workplace, experience, remote, permanent, b2b, mandate, permanent_mean, b2b_mean, mandate_mean = read_data()
+    city, workplace, experience, remote, permanent, b2b, mandate, b2b_mean = read_data()
     # print(city)
 
     city_trans = transform_strings_to_int(city)
@@ -89,8 +93,8 @@ if __name__ == '__main__':
     b2b_trans_stand = standardize_values(b2b_trans)
     mandate_trans_stand = standardize_values(mandate_trans)
 
-    permanent_mean_stand = standardize_values(mandate_trans)
-    b2b_mean_stand = standardize_values(mandate_trans)
+    permanent_mean_stand = standardize_values(permanent_trans)
+    b2b_mean_stand = standardize_values(b2b_trans)
     mandate_mean_stand = standardize_values(mandate_trans)
 
     #print('normalized data')
@@ -105,8 +109,9 @@ if __name__ == '__main__':
     #print(X.compute())
     y = da.concatenate([permanent_mean_stand, b2b_mean_stand, mandate_mean_stand], axis=1)
     # print(X.compute())
-    print(mandate)
-
+    print(permanent_mean)
+    np.set_printoptions(precision=3)
+    print(permanent_mean)
     # # divide model to train and learn data
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.4, random_state=0)#sprawdzic random state
     # print(X_train)
