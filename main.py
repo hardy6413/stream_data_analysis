@@ -78,9 +78,9 @@ if __name__ == '__main__':
     workplace_trans = transform_strings_to_int(workplace)
     experience_trans = transform_strings_to_int(experience)
     remote_trans = transform_strings_to_int(remote)
-    permanent_trans = transform_strings_to_int(permanent)
-    b2b_trans = transform_strings_to_int(b2b)
-    mandate_trans = transform_strings_to_int(mandate)
+    #permanent_trans = transform_strings_to_int(permanent)
+    #b2b_trans = transform_strings_to_int(b2b)
+    #mandate_trans = transform_strings_to_int(mandate)
 
     # print('label encoded data')
     # print(city_trans)
@@ -89,13 +89,13 @@ if __name__ == '__main__':
     workplace_trans_stand = standardize_values(workplace_trans)
     experience_trans_stand = standardize_values(experience_trans)
     remote_trans_stand = standardize_values(remote_trans)
-    permanent_trans_stand = standardize_values(permanent_trans)
-    b2b_trans_stand = standardize_values(b2b_trans)
-    mandate_trans_stand = standardize_values(mandate_trans)
+    #permanent_trans_stand = standardize_values(permanent_trans)
+    #b2b_trans_stand = standardize_values(b2b_trans)
+    #mandate_trans_stand = standardize_values(mandate_trans)
 
-    permanent_mean_stand = standardize_values(permanent_trans)
-    b2b_mean_stand = standardize_values(b2b_trans)
-    mandate_mean_stand = standardize_values(mandate_trans)
+    #permanent_mean_stand = standardize_values(permanent_trans)
+    b2b_mean_stand = standardize_values(b2b_mean)
+    #mandate_mean_stand = standardize_values(mandate_trans)
 
     #print('normalized data')
     #print(city_trans_stand.compute())
@@ -104,16 +104,18 @@ if __name__ == '__main__':
     #X_train_n, X_test_n, x_train_n, x_test_n = train_test_split(X_n, xscaled.ravel(), test_size=0.2, random_state=0)
 
     # build model
-    X = da.concatenate((city_trans_stand, mandate_trans_stand, workplace_trans_stand,
-                       experience_trans_stand, remote_trans_stand, permanent_trans_stand, b2b_trans_stand),  axis=1)
+    #X = da.concatenate((city_trans_stand, mandate_trans_stand, workplace_trans_stand,
+     #                  experience_trans_stand, remote_trans_stand, permanent_trans_stand, b2b_trans_stand),  axis=1)
+
+    X = da.concatenate((city_trans_stand, workplace_trans_stand, experience_trans_stand, remote_trans_stand), axis=1)
     #print(X.compute())
-    y = da.concatenate([permanent_mean_stand, b2b_mean_stand, mandate_mean_stand], axis=1)
+    #y = da.concatenate([permanent_mean_stand, b2b_mean_stand, mandate_mean_stand], axis=1)
     # print(X.compute())
-    print(permanent_mean)
-    np.set_printoptions(precision=3)
-    print(permanent_mean)
+    #print(permanent_mean)
+    #np.set_printoptions(precision=3)
+    #print(permanent_mean)
     # # divide model to train and learn data
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.4, random_state=0)#sprawdzic random state
+    X_train, X_test, y_train, y_test = train_test_split(X, b2b_mean_stand, test_size=0.8, random_state=0)#sprawdzic random state
     # print(X_train)
     # # linear regression with multiple params
     model = LinearRegression()
