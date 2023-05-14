@@ -1,6 +1,6 @@
 import dask.dataframe as dd
 import dask.array as da
-
+import matplotlib.pyplot as plt
 from dask_ml.preprocessing import StandardScaler
 from dask_ml.preprocessing import LabelEncoder
 from sklearn.model_selection import train_test_split
@@ -62,12 +62,12 @@ def standardize_values(frame: dd.DataFrame) -> da.array:
     scaler = StandardScaler()
     #scaler = preprocessing.StandardScaler()
     #xscaled = scaler.fit_transform(data)
-    #scaled_data = scaler.fit_transform(data.reshape(-1, 1))
+    scaled_data = scaler.fit_transform(data.reshape(-1, 1))
     #print("xx")
     #print(scaled_data.compute())
     #print("yy")
     #print(data.compute())
-    return data
+    return scaled_data
 
 
 if __name__ == '__main__':
@@ -115,7 +115,7 @@ if __name__ == '__main__':
     #np.set_printoptions(precision=3)
     #print(permanent_mean)
     # # divide model to train and learn data
-    X_train, X_test, y_train, y_test = train_test_split(X, b2b_mean_stand, test_size=0.7, random_state=0)#sprawdzic random state
+    X_train, X_test, y_train, y_test = train_test_split(X, b2b_mean_stand, test_size=0.2, random_state=0)#sprawdzic random state
     # print(X_train)
     # # linear regression with multiple params
     model = LinearRegression()
@@ -132,7 +132,9 @@ if __name__ == '__main__':
     print("xx")
     print(y_test.compute())
     print(y_pred)
-    r = roc_auc_score(y_test, y_pred)
-    print(r)
-    print("The auc of our model is {}%".format(round(r, 2) * 100))
+    #r = roc_auc_score(y_test, y_pred)
+    #print(r)
+    #print("The auc of our model is {}%".format(round(r, 2) * 100))
     # compute Accuracy, Loss, AUC, MAE, RMS from sklearn.metrics
+    plt.plot(b2b_mean_stand)
+    plt.show()
