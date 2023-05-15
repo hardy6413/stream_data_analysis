@@ -11,6 +11,7 @@ from sklearn.metrics import classification_report, precision_score, f1_score, ac
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 from sklearn.metrics import r2_score, roc_auc_score
+from sklearn.preprocessing import PolynomialFeatures
 def read_data():
     data = dd.read_csv('./archive/data.csv',
                        dtype={'Company_size_from': 'object',
@@ -38,7 +39,7 @@ def read_data():
 
     #data['mandate_mean'] = data[['salary_from_mandate', 'salary_to_mandate']].mean(axis=1) * data[
     #    'currency_exchange_rate']
-
+    data = data[data.Marker_icon  == 'java']
     return data['City'].values.compute().transpose(), \
         data['Workplace_type'].values.compute().transpose(), data['Experience_level'].values.compute().transpose(), \
         data['Remote'].values.compute().transpose(), data['if_permanent'].values.compute().transpose(), \
@@ -110,15 +111,22 @@ if __name__ == '__main__':
     #X = da.concatenate((city_trans_stand, mandate_trans_stand, workplace_trans_stand,
      #                  experience_trans_stand, remote_trans_stand, permanent_trans_stand, b2b_trans_stand),  axis=1)
 
-    X = da.concatenate((city_trans_stand, workplace_trans_stand, experience_trans_stand, language_trans_stand), axis=1)
+    poly = PolynomialFeatures(degree=4, include_bias=False)
+    #w = poly.fit_transform(city_trans_stand)
+
+    X = da.concatenate((city_trans_stand, workplace_trans_stand, experience_trans_stand), axis=1)
+    print(X.compute())
     #print(X.compute())
+    X = poly.fit_transform(X)
+
+    print(X)
     #y = da.concatenate([permanent_mean_stand, b2b_mean_stand, mandate_mean_stand], axis=1)
     # print(X.compute())
     #print(permanent_mean)
     #np.set_printoptions(precision=3)
     #print(permanent_mean)
     # # divide model to train and learn data
-    X_train, X_test, y_train, y_test = train_test_split(X, b2b_mean_stand, test_size=0.3, random_state=0)#sprawdzic random state
+    X_train, X_test, y_train, y_test = train_test_split(X, b2b_mean_stand, test_size=0.2, random_state=0)#sprawdzic random state
     # print(X_train)
     # # linear regression with multiple params
     model = LinearRegression()
@@ -133,8 +141,8 @@ if __name__ == '__main__':
     score = r2_score(y_test, y_pred)
     print("The accuracy of our model is {}%".format(round(score, 2) * 100))
     print("xx")
-    print(y_test.compute())
-    print(y_pred)
+    #print(y_test.compute())
+    #print(y_pred)
     #r = roc_auc_score(y_test, y_pred)
     #print(r)
     #print("The auc of our model is {}%".format(round(r, 2) * 100))
