@@ -23,7 +23,8 @@ def read_data():
                               'Remote': 'object',
                               'if_permanent': 'object',
                               'if_b2b': 'object',
-                              'if_mandate': 'object'
+                              'if_mandate': 'object',
+                              'Marker_icon': 'object'
                               })
 
     data = data[data.salary_to_b2b > 0]
@@ -42,7 +43,7 @@ def read_data():
         data['Workplace_type'].values.compute().transpose(), data['Experience_level'].values.compute().transpose(), \
         data['Remote'].values.compute().transpose(), data['if_permanent'].values.compute().transpose(), \
         data['if_b2b'].values.compute().transpose(), data['if_mandate'].values.compute().transpose(),\
-        data['b2b_mean'].values.compute().transpose()
+        data['b2b_mean'].values.compute().transpose(), data['Marker_icon'].compute().transpose()
     #data['permanent_mean'].values.compute().transpose(),  data['b2b_mean'].values.compute().transpose(), \
     #data['mandate_mean'].values.compute().transpose()
 
@@ -71,13 +72,14 @@ def standardize_values(frame: dd.DataFrame) -> da.array:
 
 
 if __name__ == '__main__':
-    city, workplace, experience, remote, permanent, b2b, mandate, b2b_mean = read_data()
+    city, workplace, experience, remote, permanent, b2b, mandate, b2b_mean, language = read_data()
     # print(city)
 
     city_trans = transform_strings_to_int(city)
     workplace_trans = transform_strings_to_int(workplace)
     experience_trans = transform_strings_to_int(experience)
     remote_trans = transform_strings_to_int(remote)
+    language_trans = transform_strings_to_int(language)
     #permanent_trans = transform_strings_to_int(permanent)
     #b2b_trans = transform_strings_to_int(b2b)
     #mandate_trans = transform_strings_to_int(mandate)
@@ -89,6 +91,7 @@ if __name__ == '__main__':
     workplace_trans_stand = standardize_values(workplace_trans)
     experience_trans_stand = standardize_values(experience_trans)
     remote_trans_stand = standardize_values(remote_trans)
+    language_trans_stand = standardize_values(language_trans)
     #permanent_trans_stand = standardize_values(permanent_trans)
     #b2b_trans_stand = standardize_values(b2b_trans)
     #mandate_trans_stand = standardize_values(mandate_trans)
@@ -107,7 +110,7 @@ if __name__ == '__main__':
     #X = da.concatenate((city_trans_stand, mandate_trans_stand, workplace_trans_stand,
      #                  experience_trans_stand, remote_trans_stand, permanent_trans_stand, b2b_trans_stand),  axis=1)
 
-    X = da.concatenate((city_trans_stand, workplace_trans_stand, experience_trans_stand, remote_trans_stand), axis=1)
+    X = da.concatenate((city_trans_stand, workplace_trans_stand, experience_trans_stand, language_trans_stand), axis=1)
     #print(X.compute())
     #y = da.concatenate([permanent_mean_stand, b2b_mean_stand, mandate_mean_stand], axis=1)
     # print(X.compute())
@@ -115,7 +118,7 @@ if __name__ == '__main__':
     #np.set_printoptions(precision=3)
     #print(permanent_mean)
     # # divide model to train and learn data
-    X_train, X_test, y_train, y_test = train_test_split(X, b2b_mean_stand, test_size=0.2, random_state=0)#sprawdzic random state
+    X_train, X_test, y_train, y_test = train_test_split(X, b2b_mean_stand, test_size=0.3, random_state=0)#sprawdzic random state
     # print(X_train)
     # # linear regression with multiple params
     model = LinearRegression()
