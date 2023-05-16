@@ -1,7 +1,7 @@
 import dask.dataframe as dd
 import dask.array as da
 import matplotlib.pyplot as plt
-from dask_ml.preprocessing import StandardScaler
+from dask_ml.preprocessing import StandardScaler, MinMaxScaler, RobustScaler
 from dask_ml.preprocessing import LabelEncoder
 from sklearn.model_selection import train_test_split
 from sklearn import linear_model
@@ -30,13 +30,18 @@ def read_data():
 
     data = data[data.salary_to_b2b > 1000]
     data = data[data.salary_from_b2b > 1000]
+    data = data[data.salary_to_permanent > 1000]
+    data = data[data.salary_from_permanent > 1000]
+
+    #data = data[data.salary_to_b2b < 40000]
+    #data = data[data.salary_from_b2b < 40000]
+    #data = data[data.salary_to_permanent < 40000]
+    #data = data[data.salary_from_permanent < 40000]
+
     data.currency_exchange_rate = data.currency_exchange_rate.replace(0, 1)
     #data['permanent_mean'] = data[['salary_from_permanent', 'salary_to_permanent']].mean(axis=1) * data[
     #    'currency_exchange_rate']
     #data[data['salary_to_permanent'] == 0].salary_to_permanent.value_counts().compute()
-
-    #data['mandate_mean'] = data[['salary_from_mandate', 'salary_to_mandate']].mean(axis=1) * data[
-    #    'currency_exchange_rate']
     #data = data[data.currency_exchange_rate == 1]
     data = data[(data.Marker_icon  == 'java') | (data.Marker_icon == 'php')
                 |(data.Marker_icon == 'python')
@@ -44,17 +49,19 @@ def read_data():
                 |(data.Marker_icon == 'net')
                 |(data.Marker_icon == 'mobile')
                 |(data.Marker_icon == 'javascript')
-                #|(data.Marker_icon == 'analytics')
+                #v|(data.Marker_icon == 'analytics')
                 #|(data.Marker_icon == 'architecture')
                 #|(data.Marker_icon == 'c')
                 |(data.Marker_icon == 'data')
                 |(data.Marker_icon == 'testing')
-                |(data.Marker_icon == 'ux')
+                #|(data.Marker_icon == 'ux')
                 ]
     data['currency_exchange_rate'] = 1 / data['currency_exchange_rate']
-    data['b2b_mean'] = data[['salary_from_b2b', 'salary_to_b2b']].mean(axis=1) * data[ 'currency_exchange_rate']
-    data = data[data.b2b_mean > 2000]
-    data = data[data.b2b_mean < 40000]
+    data['b2b_mean'] = data[['salary_from_b2b', 'salary_to_b2b']].mean(axis=1) * data['currency_exchange_rate']
+    data['permanent_mean'] = data[['salary_from_permanent', 'salary_to_permanent']].mean(axis=1) * data['currency_exchange_rate']
+    #data['b2b_mean'] = data[['permanent_mean', 'b2b_mean']].mean(axis=1)
+    data = data[data.b2b_mean > 1000]
+    data = data[data.b2b_mean < 39000]
 
     return data['City'].values.compute(), \
         data['Workplace_type'].values.compute().transpose(), data['Experience_level'].values.compute().transpose(), \
@@ -77,8 +84,8 @@ def standardize_values(frame: dd.DataFrame) -> da.array:
     data = da.array(frame.reshape(-1, 1))
 
     # TODO: choose proper scaler StandardScaler/MinMaxScaler/RobustScaler/MaxAbsScaler
-    scaler = StandardScaler()
-    scaler = preprocessing.StandardScaler()
+    #scaler = StandardScaler()
+    scaler = MinMaxScaler()
     #xscaled = scaler.fit_transform(data)
     scaled_data = scaler.fit_transform(data.reshape(-1, 1))
     #print("xx")
@@ -127,16 +134,16 @@ if __name__ == '__main__':
     #X = da.concatenate((city_trans_stand, mandate_trans_stand, workplace_trans_stand,
      #                  experience_trans_stand, remote_trans_stand, permanent_trans_stand, b2b_trans_stand),  axis=1)
 
-    poly = PolynomialFeatures(degree=5, include_bias=True)
+    poly = PolynomialFeatures(degree=8, include_bias=True)
     #w = poly.fit_transform(city_trans_stand)
 
-    X = da.concatenate((city_trans_stand, language_trans_stand, experience_trans_stand), axis=1)
+    X = da.concatenate([city_trans_stand, language_trans_stand, experience_trans_stand], axis=1)
     #print(X.compute())
     #print(X.compute())
     X = poly.fit_transform(X)
 
     # # divide model to train and learn data
-    X_train, X_test, y_train, y_test = train_test_split(X, b2b_mean_stand, test_size=0.05, random_state=0)#sprawdzic random state
+    X_train, X_test, y_train, y_test = train_test_split(X, b2b_mean_stand, test_size=0.1, random_state=0)#sprawdzic random state
     # print(X_train)
     # # linear regression with multiple params
     model = LinearRegression()
