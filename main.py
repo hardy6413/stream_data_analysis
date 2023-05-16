@@ -34,13 +34,14 @@ def read_data():
     #data['permanent_mean'] = data[['salary_from_permanent', 'salary_to_permanent']].mean(axis=1) * data[
     #    'currency_exchange_rate']
     #data[data['salary_to_permanent'] == 0].salary_to_permanent.value_counts().compute()
-    data['b2b_mean'] = data[['salary_from_b2b', 'salary_to_b2b']].mean(axis=1) * data[
-        'currency_exchange_rate']
 
     #data['mandate_mean'] = data[['salary_from_mandate', 'salary_to_mandate']].mean(axis=1) * data[
     #    'currency_exchange_rate']
-    data = data[data.Marker_icon  == 'java']
-    return data['City'].values.compute().transpose(), \
+    data = data[data.currency_exchange_rate == 1]
+    data = data[(data.Marker_icon  == 'java') | (data.Marker_icon == 'php')]
+    #data['currency_exchange_rate'] = 1 / data['currency_exchange_rate']
+    data['b2b_mean'] = data[['salary_from_b2b', 'salary_to_b2b']].mean(axis=1) * data[ 'currency_exchange_rate']
+    return data['City'].values.compute(), \
         data['Workplace_type'].values.compute().transpose(), data['Experience_level'].values.compute().transpose(), \
         data['Remote'].values.compute().transpose(), data['if_permanent'].values.compute().transpose(), \
         data['if_b2b'].values.compute().transpose(), data['if_mandate'].values.compute().transpose(),\
@@ -62,7 +63,7 @@ def standardize_values(frame: dd.DataFrame) -> da.array:
 
     # TODO: choose proper scaler StandardScaler/MinMaxScaler/RobustScaler/MaxAbsScaler
     scaler = StandardScaler()
-    #scaler = preprocessing.StandardScaler()
+    scaler = preprocessing.StandardScaler()
     #xscaled = scaler.fit_transform(data)
     scaled_data = scaler.fit_transform(data.reshape(-1, 1))
     #print("xx")
@@ -111,20 +112,14 @@ if __name__ == '__main__':
     #X = da.concatenate((city_trans_stand, mandate_trans_stand, workplace_trans_stand,
      #                  experience_trans_stand, remote_trans_stand, permanent_trans_stand, b2b_trans_stand),  axis=1)
 
-    poly = PolynomialFeatures(degree=4, include_bias=False)
+    poly = PolynomialFeatures(degree=3, include_bias=False)
     #w = poly.fit_transform(city_trans_stand)
 
-    X = da.concatenate((city_trans_stand, workplace_trans_stand, experience_trans_stand), axis=1)
-    print(X.compute())
+    X = da.concatenate((city_trans_stand, language_trans_stand, experience_trans_stand), axis=1)
+    #print(X.compute())
     #print(X.compute())
     X = poly.fit_transform(X)
 
-    print(X)
-    #y = da.concatenate([permanent_mean_stand, b2b_mean_stand, mandate_mean_stand], axis=1)
-    # print(X.compute())
-    #print(permanent_mean)
-    #np.set_printoptions(precision=3)
-    #print(permanent_mean)
     # # divide model to train and learn data
     X_train, X_test, y_train, y_test = train_test_split(X, b2b_mean_stand, test_size=0.2, random_state=0)#sprawdzic random state
     # print(X_train)
