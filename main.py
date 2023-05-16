@@ -28,8 +28,10 @@ def read_data():
                               'Marker_icon': 'object'
                               })
 
-    data = data[data.salary_to_b2b > 0]
-    data = data[data.salary_from_b2b > 0]
+    data = data[data.salary_to_b2b > 2000]
+    data = data[data.salary_from_b2b > 2000]
+    data = data[data.salary_from_b2b < 40000]
+    data = data[data.salary_to_b2b < 40000]
     data.currency_exchange_rate = data.currency_exchange_rate.replace(0, 1)
     #data['permanent_mean'] = data[['salary_from_permanent', 'salary_to_permanent']].mean(axis=1) * data[
     #    'currency_exchange_rate']
@@ -37,10 +39,15 @@ def read_data():
 
     #data['mandate_mean'] = data[['salary_from_mandate', 'salary_to_mandate']].mean(axis=1) * data[
     #    'currency_exchange_rate']
-    data = data[data.currency_exchange_rate == 1]
-    data = data[(data.Marker_icon  == 'java') | (data.Marker_icon == 'php')]
-    #data['currency_exchange_rate'] = 1 / data['currency_exchange_rate']
+    #data = data[data.currency_exchange_rate == 1]
+    data = data[(data.Marker_icon  == 'java') | (data.Marker_icon == 'php')
+
+                ]
+    data['currency_exchange_rate'] = 1 / data['currency_exchange_rate']
     data['b2b_mean'] = data[['salary_from_b2b', 'salary_to_b2b']].mean(axis=1) * data[ 'currency_exchange_rate']
+    data = data[data.b2b_mean > 2000]
+    data = data[data.b2b_mean < 40000]
+
     return data['City'].values.compute(), \
         data['Workplace_type'].values.compute().transpose(), data['Experience_level'].values.compute().transpose(), \
         data['Remote'].values.compute().transpose(), data['if_permanent'].values.compute().transpose(), \
@@ -112,7 +119,7 @@ if __name__ == '__main__':
     #X = da.concatenate((city_trans_stand, mandate_trans_stand, workplace_trans_stand,
      #                  experience_trans_stand, remote_trans_stand, permanent_trans_stand, b2b_trans_stand),  axis=1)
 
-    poly = PolynomialFeatures(degree=3, include_bias=False)
+    poly = PolynomialFeatures(degree=5, include_bias=False)
     #w = poly.fit_transform(city_trans_stand)
 
     X = da.concatenate((city_trans_stand, language_trans_stand, experience_trans_stand), axis=1)
