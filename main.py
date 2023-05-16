@@ -34,13 +34,14 @@ def read_data():
     data['mandate_mean'] = data[['salary_from_mandate', 'salary_to_mandate']].mean(axis=1) * data[
         'currency_exchange_rate']
 
-    # marker_icons = ['java', 'php', 'python', 'devops', 'net', 'mobile', 'javascript',
-    #                 'analytics', 'architecture', 'c', 'data', 'testing', 'ux']
-    #
-    # data = data[data.Marker_icon.isin(marker_icons)]
-    # print(data['Company_size_to'].values.compute())
+    marker_icons = ['java', 'php', 'python', 'devops', 'net', 'mobile', 'javascript',
+                    'analytics', 'architecture', 'c', 'data', 'testing', 'ux']
+
+    data = data[data.Marker_icon.isin(marker_icons)]
     data = data[data.salary_to_b2b > 1000]
     data = data[data.salary_from_b2b > 1000]
+    data = data[data.salary_from_b2b < 40000]
+    data = data[data.salary_to_b2b < 40000]
 
     return data['City'].values.compute().transpose(), \
         data['Workplace_type'].values.compute().transpose(), data['Experience_level'].values.compute().transpose(), \
@@ -48,7 +49,10 @@ def read_data():
         data['if_b2b'].values.compute().transpose(), data['if_mandate'].values.compute().transpose(), \
         data['permanent_mean'].values.compute().transpose(), data['b2b_mean'].values.compute().transpose(), \
         data['mandate_mean'].values.compute().transpose(), data['Marker_icon'].values.compute().transpose(), \
-        data['Title'].values.compute().transpose()
+        data['Title'].values.compute().transpose(), \
+        data['skills_name_0'].values.compute().transpose(), data['skills_value_0'].values.compute().transpose(), \
+        data['skills_name_1'].values.compute().transpose(), data['skills_value_1'].values.compute().transpose(), \
+        data['skills_name_2'].values.compute().transpose(), data['skills_value_2'].values.compute().transpose()
 
 
 def transform_strings_to_int(frame: dd.DataFrame):
@@ -61,8 +65,6 @@ def transform_strings_to_int(frame: dd.DataFrame):
 
 def standardize_values(frame: dd.DataFrame) -> da.array:
     data = da.array(frame.reshape(-1, 1))
-
-    # TODO: choose proper scaler StandardScaler/MinMaxScaler/RobustScaler/MaxAbsScaler
     scaler = MinMaxScaler()
     scaled_data = scaler.fit_transform(data.reshape(-1, 1))
 
@@ -77,7 +79,8 @@ def show_results(test, pred):
 
 if __name__ == '__main__':
     city, workplace, experience, remote, permanent, b2b, mandate, \
-        permanent_mean, b2b_mean, mandate_mean, language, title = read_data()
+        permanent_mean, b2b_mean, mandate_mean, language, title, \
+        skills_name_0, skills_value_0, skills_name_1, skills_value_1, skills_name_2, skills_value_2, = read_data()
 
     city_trans = transform_strings_to_int(city)
     workplace_trans = transform_strings_to_int(workplace)
@@ -88,6 +91,12 @@ if __name__ == '__main__':
     mandate_trans = transform_strings_to_int(mandate)
     language_trans = transform_strings_to_int(language)
     title_trans = transform_strings_to_int(title)
+    skills_name_0_trans = transform_strings_to_int(skills_name_0)
+    skills_name_1_trans = transform_strings_to_int(skills_name_1)
+    skills_name_2_trans = transform_strings_to_int(skills_name_2)
+    skills_value_0_trans = transform_strings_to_int(skills_value_0)
+    skills_value_1_trans = transform_strings_to_int(skills_value_1)
+    skills_value_2_trans = transform_strings_to_int(skills_value_2)
 
     city_trans_stand = standardize_values(city_trans)
     workplace_trans_stand = standardize_values(workplace_trans)
@@ -98,18 +107,22 @@ if __name__ == '__main__':
     mandate_trans_stand = standardize_values(mandate_trans)
     language_trans_stand = standardize_values(language_trans)
     title_trans_stand = standardize_values(title_trans)
+    skills_name_0_trans_stand = standardize_values(skills_name_0_trans)
+    skills_name_1_trans_stand = standardize_values(skills_name_1_trans)
+    skills_name_2_trans_stand = standardize_values(skills_name_2_trans)
+    skills_value_0_trans_stand = standardize_values(skills_value_0_trans)
+    skills_value_1_trans_stand = standardize_values(skills_value_1_trans)
+    skills_value_2_trans_stand = standardize_values(skills_value_2_trans)
 
     permanent_mean_stand = standardize_values(permanent_mean)
     b2b_mean_stand = standardize_values(b2b_mean)
     mandate_mean_stand = standardize_values(mandate_mean)
 
-    X = da.concatenate([city_trans_stand, experience_trans_stand, workplace_trans_stand, remote_trans_stand,
-                        permanent_trans_stand, b2b_trans_stand, mandate_trans_stand, language_trans_stand,
-                        title_trans_stand], axis=1)
+    X = da.concatenate([city_trans_stand, language_trans_stand, experience_trans_stand, skills_name_0_trans_stand, skills_value_0_trans_stand, skills_name_1_trans_stand, skills_value_1_trans_stand, skills_name_2_trans_stand, skills_value_2_trans_stand], axis=1)
 
     poly = PolynomialFeatures(degree=3, include_bias=True)
     poly_features = poly.fit_transform(X)
-    X_train, X_test, y_train, y_test = train_test_split(poly_features, b2b_mean_stand, test_size=0.2, random_state=0)
+    X_train, X_test, y_train, y_test = train_test_split(poly_features, b2b_mean_stand, test_size=0.2, random_state=None)
 
     model = LinearRegression()
     model.fit(X_train, y_train)
