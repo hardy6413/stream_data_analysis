@@ -1,11 +1,12 @@
 import dask.dataframe as dd
 import dask.array as da
-import dask_ml.model_selection
-import dask_ml.datasets
-from dask_ml.linear_model import LinearRegression
-from dask_ml.model_selection import train_test_split
+
 from dask_ml.preprocessing import StandardScaler
 from dask_ml.preprocessing import LabelEncoder
+from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn.preprocessing import PolynomialFeatures
 
 
 def read_data():
@@ -20,7 +21,8 @@ def read_data():
                               'Remote': 'object',
                               'if_permanent': 'object',
                               'if_b2b': 'object',
-                              'if_mandate': 'object'
+                              'if_mandate': 'object',
+                              'Marker_icon': 'object'
                               })
 
     data['permanent_mean'] = data[['salary_from_permanent', 'salary_to_permanent']].mean(axis=1) * data[
@@ -32,12 +34,19 @@ def read_data():
     data['mandate_mean'] = data[['salary_from_mandate', 'salary_to_mandate']].mean(axis=1) * data[
         'currency_exchange_rate']
 
+    data['currency_exchange_rate'] = data['currency_exchange_rate'].replace(0, 1)
+
+    marker_icons = ['java', 'php', 'python', 'devops', 'net', 'mobile', 'javascript',
+                    'analytics', 'architecture', 'c', 'data', 'testing', 'ux']
+
+    data = data[data.Marker_icon.isin(marker_icons)]
+
     return data['City'].values.compute().transpose(), \
         data['Workplace_type'].values.compute().transpose(), data['Experience_level'].values.compute().transpose(), \
         data['Remote'].values.compute().transpose(), data['if_permanent'].values.compute().transpose(), \
-        data['if_b2b'].values.compute().transpose(), data['if_mandate'].values.compute().transpose(),\
-    data['permanent_mean'].values.compute().transpose(),  data['b2b_mean'].values.compute().transpose(), \
-    data['mandate_mean'].values.compute().transpose()
+        data['if_b2b'].values.compute().transpose(), data['if_mandate'].values.compute().transpose(), \
+        data['permanent_mean'].values.compute().transpose(), data['b2b_mean'].values.compute().transpose(), \
+        data['mandate_mean'].values.compute().transpose(), data['Marker_icon'].values.compute().transpose()
 
 
 def transform_strings_to_int(frame: dd.DataFrame):
@@ -58,9 +67,15 @@ def standardize_values(frame: dd.DataFrame) -> da.array:
     return scaled_data
 
 
+def show_results(test, pred):
+    print('Mean Squared Error (MSE): {:.4f}'.format(mean_squared_error(test, pred)))
+    print('Mean Absolute Error (MAE): {:.4f}'.format(mean_absolute_error(test, pred)))
+    print('R^2 Score: {:.4f}'.format(r2_score(test, pred)))
+
+
 if __name__ == '__main__':
-    city, workplace, experience, remote, permanent, b2b, mandate, permanent_mean, b2b_mean, mandate_mean = read_data()
-    # print(city)
+    city, workplace, experience, remote, permanent, b2b, mandate, \
+        permanent_mean, b2b_mean, mandate_mean, language = read_data()
 
     city_trans = transform_strings_to_int(city)
     workplace_trans = transform_strings_to_int(workplace)
@@ -69,9 +84,7 @@ if __name__ == '__main__':
     permanent_trans = transform_strings_to_int(permanent)
     b2b_trans = transform_strings_to_int(b2b)
     mandate_trans = transform_strings_to_int(mandate)
-
-    # print('label encoded data')
-    # print(city_trans)
+    language_trans = transform_strings_to_int(language)
 
     city_trans_stand = standardize_values(city_trans)
     workplace_trans_stand = standardize_values(workplace_trans)
@@ -80,28 +93,21 @@ if __name__ == '__main__':
     permanent_trans_stand = standardize_values(permanent_trans)
     b2b_trans_stand = standardize_values(b2b_trans)
     mandate_trans_stand = standardize_values(mandate_trans)
+    language_trans_stand = standardize_values(language_trans)
 
-    permanent_mean_stand = standardize_values(mandate_trans)
-    b2b_mean_stand = standardize_values(mandate_trans)
-    mandate_mean_stand = standardize_values(mandate_trans)
+    permanent_mean_stand = standardize_values(permanent_mean)
+    b2b_mean_stand = standardize_values(b2b_mean)
+    mandate_mean_stand = standardize_values(mandate_mean)
 
-    print('normalized data')
-    print(city_trans_stand.compute())
-    print(mandate_mean_stand.compute())
+    X = da.concatenate([city_trans_stand, experience_trans_stand, workplace_trans_stand, remote_trans_stand,
+                        permanent_trans_stand, b2b_trans_stand, mandate_trans_stand, language_trans_stand], axis=1)
 
-    # build model
-    X = da.concatenate([city_trans_stand, mandate_trans_stand, workplace_trans_stand,
-                        experience_trans_stand, remote_trans_stand, permanent_trans_stand, b2b_trans_stand],  axis=1)
-    y = da.concatenate([permanent_mean_stand, b2b_mean_stand, mandate_mean_stand], axis=1)
-    # print(X.compute())
-    # print(y.compute())
+    poly = PolynomialFeatures(degree=3, include_bias=False)
+    poly_features = poly.fit_transform(X)
+    X_train, X_test, y_train, y_test = train_test_split(poly_features, b2b_mean_stand, test_size=0.2, random_state=0)
 
-    # # divide model to train and learn data
-    # X_train, X_test, y_train, y_test = train_test_split(X, permanent_mean_stand, test_size=0.2, random_state=42)
-    # print(X_train)
-    # # linear regression with multiple params
-    # model = LinearRegression()
-    # model.fit(X_train, y_train)
-    # y_pred = model.predict(X_test)
+    model = LinearRegression()
+    model.fit(X_train, y_train)
+    y_pred = model.predict(X_test)
 
-    # compute Accuracy, Loss, AUC, MAE, RMS from sklearn.metrics
+    show_results(y_test, y_pred)
