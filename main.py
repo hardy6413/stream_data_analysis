@@ -48,7 +48,6 @@ def read_data():
     # Obliczanie nowych kolumn i filtrowanie danych
     data['currency_exchange_rate'] = 1 / data['currency_exchange_rate']
     data['b2b_mean'] = data[['salary_from_b2b', 'salary_to_b2b']].mean(axis=1) * data['currency_exchange_rate']
-    data['permanent_mean'] = data[['salary_from_permanent', 'salary_to_permanent']].mean(axis=1) * data['currency_exchange_rate']
     data = data[data.b2b_mean > 1000]
     data = data[data.b2b_mean < 39000]
 
@@ -112,7 +111,6 @@ def update_data():
     mse = mean_squared_error(y_test, y_pred)
     mae = mean_absolute_error(y_test, y_pred)
     r2 = r2_score(y_test, y_pred)
-
     sys.stdout.write('mean_squared_error: {}\n'.format(mse))
     sys.stdout.write('mean_absolute_error: {}\n'.format(mae))
     sys.stdout.write("The accuracy of our model is {}%\n".format(round(r2, 2) * 100))
