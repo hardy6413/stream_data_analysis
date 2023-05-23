@@ -1,10 +1,14 @@
-FROM python:3.8
+# Wybierz bazowy obraz
+FROM python:3.9
 
+# Skopiuj pliki aplikacji do kontenera
+COPY . /app
+
+# Ustaw katalog roboczy
 WORKDIR /app
 
-COPY main.py /app/main.py
-COPY config.yaml /app/config.yaml
+# Zainstaluj zależności
+RUN pip install -r requirements.txt
 
-RUN python -m pip install "dask[complete]"
-
+# Uruchom aktualizację danych
 CMD ["python", "main.py"]

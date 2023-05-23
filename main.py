@@ -83,15 +83,11 @@ def update_data():
     city, workplace, experience, remote, permanent, b2b, mandate, b2b_mean, language = read_data()
 
     city_trans = transform_strings_to_int(city)
-    workplace_trans = transform_strings_to_int(workplace)
     experience_trans = transform_strings_to_int(experience)
-    remote_trans = transform_strings_to_int(remote)
     language_trans = transform_strings_to_int(language)
 
     city_trans_stand = standardize_values(city_trans)
-    workplace_trans_stand = standardize_values(workplace_trans)
     experience_trans_stand = standardize_values(experience_trans)
-    remote_trans_stand = standardize_values(remote_trans)
     language_trans_stand = standardize_values(language_trans)
 
     b2b_mean_stand = standardize_values(b2b_mean)
